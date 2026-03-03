@@ -24,6 +24,7 @@ local showSquareB = false
 local CinematicHeight = 0.2
 local w = 0
 local hasWeapon = false
+local wasInAircraft = false
 
 DisplayRadar(false)
 
@@ -581,6 +582,9 @@ local function updateVehicleHud(data)
             showSeatbelt = data[8],
             showSquareB = data[9],
             showCircleB = data[10],
+            engine = data[11],
+            nitro = data[12],
+            isAircraft = data[13],
         })
     end
 end
@@ -672,7 +676,8 @@ CreateThread(function()
             })
             end
             -- Vehicle hud
-            if IsPedInAnyHeli(cache.ped) or IsPedInAnyPlane(cache.ped) then
+            local inAircraft = IsPedInAnyHeli(cache.ped) or IsPedInAnyPlane(cache.ped)
+            if inAircraft then
                 showAltitude = true
                 showSeatbelt = false
             end
@@ -724,7 +729,34 @@ CreateThread(function()
                     showSeatbelt,
                     showSquareB,
                     showCircleB,
+                    (GetVehicleEngineHealth(cache.vehicle) / 10),
+                    nos,
+                    inAircraft,
                 })
+
+                if inAircraft then
+                    local vehicleClass = GetVehicleClass(cache.vehicle)
+                    SendNUIMessage({
+                        action = 'aircraft',
+                        show = true,
+                        isPaused = IsPauseMenuActive(),
+                        speed = math.ceil(GetEntitySpeed(cache.vehicle) * speedMultiplier),
+                        fuel = getFuelLevel(cache.vehicle),
+                        engine = (GetVehicleEngineHealth(cache.vehicle) / 10),
+                        nitro = nos,
+                        seatbelt = LocalPlayer.state?.seatbelt,
+                        altitude = GetEntityCoords(cache.ped).z,
+                        aircraftType = vehicleClass == 16 and 'PLANE' or 'HELICOPTER',
+                    })
+                    wasInAircraft = true
+                elseif wasInAircraft then
+                    SendNUIMessage({
+                        action = 'aircraft',
+                        show = false,
+                    })
+                    wasInAircraft = false
+                end
+
                 showAltitude = false
                 showSeatbelt = true
             else
@@ -737,6 +769,13 @@ CreateThread(function()
                         cruise = false,
                     })
                     cruiseOn = false
+                end
+                if wasInAircraft then
+                    SendNUIMessage({
+                        action = 'aircraft',
+                        show = false,
+                    })
+                    wasInAircraft = false
                 end
                 DisplayRadar(sharedConfig.menu.isOutMapChecked)
             end
@@ -935,6 +974,10 @@ CreateThread(function()
                 action = 'car',
                 show = false,
             })
+            SendNUIMessage({
+                action = 'aircraft',
+                show = false,
+            })
         end
         Wait(0)
     end
@@ -1049,6 +1092,9 @@ RegisterNetEvent('qbx_hud:client:showHud', function()
             showSeatbelt,
             showSquareB,
             showCircleB,
+            (GetVehicleEngineHealth(cache.vehicle) / 10),
+            nos,
+            IsPedInAnyHeli(cache.ped) or IsPedInAnyPlane(cache.ped),
         })
     end
 end)
@@ -1058,6 +1104,10 @@ RegisterNetEvent('qbx_hud:client:hideHud', function()
         DisplayRadar(false)
         SendNUIMessage({
             action = 'car',
+            show = false,
+        })
+        SendNUIMessage({
+            action = 'aircraft',
             show = false,
         })
     end

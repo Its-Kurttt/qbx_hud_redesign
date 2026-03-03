@@ -292,3 +292,71 @@ altitude {
   font-weight: 600;
   text-shadow: 0 0 1px rgba(0, 0, 0, 0.6), 0 0 1px rgba(0, 0, 0, 0.6), 0 0 1px rgba(0, 0, 0, 0.6), 0 0 1px rgba(0, 0, 0, 0.6);
 }
+
+/* Minimal numeric HUD redesign */
+#playerHud {
+  position: absolute;
+  left: 1.6vw;
+  bottom: 1.3vh;
+}
+
+.hud-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(6.5rem, auto));
+  gap: 0.35rem;
+}
+
+.hud-item, .veh-item {
+  background: rgba(12, 12, 12, 0.68);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.28rem 0.5rem;
+  text-transform: uppercase;
+  text-shadow: 0 0 2px rgba(0, 0, 0, 0.9);
+}
+
+.vehicle-hud {
+  position: absolute;
+  right: 1.6vw;
+  bottom: 1.3vh;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(6.5rem, auto));
+  gap: 0.35rem;
+}
+
+.aircraft-hud {
+  position: absolute;
+  right: 1.6vw;
+  bottom: 1.3vh;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+}
+
+.aircraft-image {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.9));
+}
+
+.aircraft-type {
+  background: rgba(12, 12, 12, 0.68);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #8ad5ff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0.25rem 0.5rem;
+}
+
+.aircraft-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(6.5rem, auto));
+  gap: 0.35rem;
+}

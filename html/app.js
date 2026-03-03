@@ -667,61 +667,30 @@ const moneyHud = Vue.createApp({
 const playerHud = {
   data() {
     return {
-      dynamicHealth: 0,
-      dynamicHunger: 0,
-      dynamicThirst: 0,
-      dynamicStress: 0,
-      dynamicOxygen: 0,
-      dynamicEngine: 0,
-      dynamicNitro: 0,
-      nos: 0,
-      static: 100,
+      show: false,
       health: 0,
-      playerDead: 0,
       armor: 0,
       hunger: 0,
       thirst: 0,
       stress: 0,
+      oxygen: 0,
       voice: 0,
       radio: 0,
-      harness: 0,
-      nitroActive: 0,
-      cruise: 0,
-      parachute: 0,
-      oxygen: 0,
-      hp: 0,
-      armed: 0,
-      speed: 0,
-      engine: 0,
-      cinematic: 0,
-      dev: 0,
-      show: false,
-      talking: false,
-      showVoice: true,
-      showHealth: false,
+      dynamicHealth: false,
+      dynamicArmor: false,
+      dynamicHunger: false,
+      dynamicThirst: false,
+      dynamicStress: false,
+      dynamicOxygen: false,
+      talkingColor: "#FFFFFF",
+      showHealth: true,
       showArmor: true,
       showHunger: true,
       showThirst: true,
-      showNos: true,
       showStress: true,
-      showOxygen: false,
-      showArmed: true,
-      showEngine: false,
-      showCruise: false,
-      showHarness: false,
-      showParachute: false,
-      showDev: false,
-      voiceIcon: "fas fa-microphone",
-      talkingColor: "#FFFFFF",
-      nosColor: "",
-      engineColor: "",
-      armorColor: "",
-      hungerColor: "",
-      healthColor: "",
-      thirstColor: "",
+      showOxygen: true,
     };
   },
-  
   destroyed() {
     window.removeEventListener("message", this.listener);
   },
@@ -729,210 +698,41 @@ const playerHud = {
     this.listener = window.addEventListener("message", (event) => {
       if (event.data.action === "hudtick") {
         this.hudTick(event.data);
-      } 
-      // else if(event.data.update) {
-      //   eval(event.data.action + "(" + event.data.show + ')')
-      // }
+      }
     });
-    Config = {};
   },
   methods: {
     hudTick(data) {
-      this.show = data.show;
-      this.health = data.health;
-      this.armor = data.armor;
-      this.hunger = data.hunger;
-      this.thirst = data.thirst;
-      this.stress = data.stress;
-      this.voice = data.voice;
-      this.talking = data.talking;
-      this.radio = data.radio;
-      this.nos = data.nos;
-      this.oxygen = data.oxygen;
-      this.cruise = data.cruise;
-      this.nitroActive = data.nitroActive;
-      this.harness = data.harness;
-      this.speed = data.speed;
-      this.armed = data.armed;
-      this.parachute = data.parachute;
-      this.hp = data.hp*5;
-      this.engine = data.engine;
-      this.cinematic = data.cinematic;
-      this.dev = data.dev;
-      this.playerDead = data.playerDead;
-      this.dynamicHealth = data.dynamicHealth;
-      this.dynamicArmor = data.dynamicArmor;
-      this.dynamicHunger = data.dynamicHunger;
-      this.dynamicThirst = data.dynamicThirst;
-      this.dynamicStress = data.dynamicStress;
-      this.dynamicOxygen = data.dynamicOxygen;
-      this.dynamicEngine = data.dynamicEngine;
-      this.dynamicNitro = data.dynamicNitro;
+      this.show = !!data.show && data.isPaused !== 1;
+      this.health = data.playerDead ? 0 : Math.max(0, Math.floor(data.health));
+      this.armor = Math.max(0, Math.floor(data.armor));
+      this.hunger = Math.max(0, Math.floor(data.hunger));
+      this.thirst = Math.max(0, Math.floor(data.thirst));
+      this.stress = Math.max(0, Math.floor(data.stress));
+      this.oxygen = Math.max(0, Math.floor(data.oxygen));
+      this.voice = Number(data.voice || 0).toFixed(1);
+      this.radio = data.radio || 0;
 
-      if (data.dynamicHealth == true) {
-        if (data.health >= 100) {
-          this.showHealth = false; }
-          else{
-            this.showHealth = true;
-          }
-      } else if (data.dynamicHealth == false){
-        this.showHealth = true;
-      } 
-      if (data.playerDead === false) {
-        this.healthColor = "#3FA554";
-      } else {
-        this.healthColor = "#ff0000";
-        this.health = 100;
-      }
+      this.dynamicHealth = !!data.dynamicHealth;
+      this.dynamicArmor = !!data.dynamicArmor;
+      this.dynamicHunger = !!data.dynamicHunger;
+      this.dynamicThirst = !!data.dynamicThirst;
+      this.dynamicStress = !!data.dynamicStress;
+      this.dynamicOxygen = !!data.dynamicOxygen;
 
-      if (data.dynamicArmor == true) {
-        if (data.armor == 0) {
-          this.showArmor = false; 
-        }  else {
-            this.showArmor = true;
-          }
-      } else if (data.dynamicArmor == false){
-        this.showArmor = true;
-      } 
+      this.showHealth = !this.dynamicHealth || this.health < 100;
+      this.showArmor = !this.dynamicArmor || this.armor > 0;
+      this.showHunger = !this.dynamicHunger || this.hunger < 100;
+      this.showThirst = !this.dynamicThirst || this.thirst < 100;
+      this.showStress = !this.dynamicStress || this.stress > 0;
+      this.showOxygen = !this.dynamicOxygen || this.oxygen < 100;
 
-      if (data.armor <= 0) {
-        this.armorColor = "#FF0000";
-      } else {
-        this.armorColor = "#326dbf";
-      }
-
-      if (data.dynamicHunger == true) {
-        if (data.hunger >= 100) {
-          this.showHunger = false; }
-          else{
-            this.showHunger = true;
-          }
-      } else if (data.dynamicHunger == false){
-        this.showHunger = true;
-      } 
-      if (data.hunger >= 100) {
-        this.hungerColor = "#dd6e14";
-      } else if(data.hunger <= 30){
-        this.hungerColor = "#ff0000";
-      } else{
-        this.hungerColor = "#dd6e14";
-      }
-
-      if (data.dynamicThirst == true) {
-        if (data.thirst >= 100) {
-          this.showThirst = false; }
-          else{
-            this.showThirst = true;
-          }
-      } else if (data.dynamicThirst == false){
-        this.showThirst = true;
-      } 
-      if (data.thirst >= 100) {
-        this.thirstColor = "#1a7cad";
-      } else if(data.thirst <= 30){
-        this.thirstColor = "#ff0000";
-      } else{
-        this.thirstColor = "#1a7cad";
-      }
-
-      if (data.dynamicStress == true) {
-        if (data.stress == 0) {
-          this.showStress = false; 
-        }  else {
-            this.showStress = true;
-          }
-      } else if (data.dynamicStress == false){
-        this.showStress = true;
-      } 
-
-      if (data.dynamicOxygen == true) {
-        if (data.oxygen >= 100) {
-          this.showOxygen = false; }
-          else{
-            this.showOxygen = true;
-          }
-      } else if (data.dynamicOxygen == false){
-        this.showOxygen = true;
-      } 
-
-      if (data.dynamicEngine == true) {
-        if (data.engine >= 95) {
-          this.showEngine = false; 
-        } else if  (data.engine < 0){
-          this.showEngine = false;} else {this.showEngine = true;}
-      } else if (data.dynamicEngine == false){
-        if  (data.engine < 0) {
-          this.showEngine = false;} else {this.showEngine = true;}
-      } 
-      if (data.engine <= 45) {
-        this.engineColor = "#ff0000";
-      } else if (data.engine <= 75 && data.engine >= 46 ) {
-        this.engineColor = "#dd6e14";
-      } else if(data.engine<=100) {
-        this.engineColor = "#3FA554";
-      } 
-
-      if (data.dynamicNitro == true) {
-      if (data.nos === 0 || data.nos === undefined) {
-        this.showNos = false;
-      } else if  (data.nos < 0){
-        this.showNos = false;} else {this.showNos = true;}  
-      } else if  (data.dynamicNitro == false)  {
-        if  (data.nos < 0){
-          this.showNos = false;
-      } else {this.showNos = true;}
-      }
-      if (data.nitroActive) {
-        this.nosColor = "#D64763";
-      } else {
-        this.nosColor = "#FFFFFF";
-      }
-
-      if (data.talking && data.radio) {
+      if (data.talking && this.radio) {
         this.talkingColor = "#D64763";
       } else if (data.talking) {
-        this.talkingColor = '#FFFF3E';
+        this.talkingColor = "#FFFF3E";
       } else {
         this.talkingColor = "#FFFFFF";
-      }
-      if (data.radio != 0 && data.radio != undefined) {
-        this.voiceIcon = 'fas fa-headset';
-      } else if (data.radio == 0 || data.radio == undefined) {
-        this.voiceIcon = 'fas fa-microphone';
-      }
-      if (data.cruise === true) {
-        this.cruise = 1;
-        this.showCruise = true;
-      } else {
-        this.cruise = 0;
-        this.showCruise = false;
-      }
-
-      if (data.harness === true) {
-        this.showHarness = true;
-      } else {
-        this.showHarness = false;
-      }
-      if (data.armed === true) {
-        this.showArmed = true;
-      } else {
-        this.showArmed = false;
-      }
-
-      if (data.parachute >= 0 ) {
-        this.showParachute = true;
-      } else {
-        this.showParachute = false;
-      }
-
-      if (data.dev === true ) {
-        this.showDev = true;
-      } else {
-        this.showDev = false;
-      }
-
-      if (data.isPaused === 1) {
-        this.show = false;
       }
     },
   },
@@ -946,22 +746,15 @@ app2.mount("#ui-container");
 const vehHud = {
   data() {
     return {
-      speedometer: 66,
-      fuelgauge: 69,
-      altitudegauge: 75,
-      fuel: 0,
-      speed: 0,
-      seatbelt: 0,
-      showSquareB: 0,
       show: false,
-      showAltitude: true,
-      showSeatbelt: true,
-      showSquare: false,
-      showCircle: false,
-      seatbeltColor: "",
+      speed: 0,
+      fuel: 0,
+      engine: 0,
+      nitro: 0,
+      seatbeltText: "OFF",
+      seatbeltColor: "#FF5100",
     };
   },
-  
   destroyed() {
     window.removeEventListener("message", this.listener);
   },
@@ -974,50 +767,17 @@ const vehHud = {
   },
   methods: {
     vehicleHud(data) {
-      this.show = data.show;
-      this.speed = data.speed;
-      this.altitude = data.altitude;
-      this.fuel = (data.fuel * 0.71);
-      this.showSeatbelt = data.showSeatbelt;
-      this.showAltitude = data.showAltitude;
-      this.showSquareB = data.showSquareB;
-      this.showCircleB = data.showCircleB;
+      this.show = !!data.show && data.isPaused !== 1 && !data.isAircraft;
+      this.speed = Math.max(0, Math.floor(data.speed || 0));
+      this.fuel = Math.max(0, Math.floor(data.fuel || 0));
+      this.engine = Math.max(0, Math.floor(data.engine || 0));
+      this.nitro = Math.max(0, Math.floor(data.nitro || 0));
       if (data.seatbelt === true) {
-        this.seatbelt = 1;
-        this.seatbeltColor = "transparent";
+        this.seatbeltText = "ON";
+        this.seatbeltColor = "#6CE36C";
       } else {
-        this.seatbelt = 0;
+        this.seatbeltText = "OFF";
         this.seatbeltColor = "#FF5100";
-      }
-      if (data.showSeatbelt === true) {
-        this.showSeatbelt = true;
-      } else {
-        this.showSeatbelt = false;
-      }
-      if (data.showAltitude === true) {
-        this.showAltitude = true;
-      } else {
-        this.showAltitude = false;
-      }
-      if (data.fuel <= 20) {
-        this.fuelColor = "#ff0000";
-      } else if (data.fuel <= 30) {
-        this.fuelColor = "#dd6e14";
-      } else {
-        this.fuelColor = "#FFFFFF";
-      }
-      if (data.showSquareB === true) {
-        this.showSquare = true;
-      } else {
-        this.showSquare = false;
-      }
-      if (data.showCircleB === true) {
-        this.showCircle = true;
-      } else {
-        this.showCircle = false;
-      }
-      if (data.isPaused === 1) {
-        this.show = false;
       }
     },
   },
@@ -1025,6 +785,61 @@ const vehHud = {
 const app3 = Vue.createApp(vehHud);
 app3.use(Quasar);
 app3.mount("#veh-container");
+
+// AIRCRAFT HUD
+
+const aircraftHud = {
+  data() {
+    return {
+      show: false,
+      altitude: 0,
+      targetAltitude: 0,
+      speed: 0,
+      fuel: 0,
+      engine: 0,
+      nitro: 0,
+      aircraftType: "AIRCRAFT",
+      seatbeltText: "OFF",
+      raf: null,
+    };
+  },
+  destroyed() {
+    window.removeEventListener("message", this.listener);
+    if (this.raf) cancelAnimationFrame(this.raf);
+  },
+  mounted() {
+    this.listener = window.addEventListener("message", (event) => {
+      if (event.data.action === "aircraft") {
+        this.aircraftTick(event.data);
+      }
+    });
+    this.animateAltitude();
+  },
+  methods: {
+    aircraftTick(data) {
+      this.show = !!data.show && data.isPaused !== 1;
+      this.targetAltitude = Math.max(0, Number(data.altitude || 0));
+      this.speed = Math.max(0, Math.floor(data.speed || 0));
+      this.fuel = Math.max(0, Math.floor(data.fuel || 0));
+      this.engine = Math.max(0, Math.floor(data.engine || 0));
+      this.nitro = Math.max(0, Math.floor(data.nitro || 0));
+      this.aircraftType = data.aircraftType || "AIRCRAFT";
+      this.seatbeltText = data.seatbelt ? "ON" : "OFF";
+    },
+    animateAltitude() {
+      const delta = this.targetAltitude - this.altitude;
+      if (Math.abs(delta) > 0.1) {
+        this.altitude += delta * 0.2;
+      } else {
+        this.altitude = this.targetAltitude;
+      }
+      this.raf = requestAnimationFrame(() => this.animateAltitude());
+    },
+  },
+};
+const app5 = Vue.createApp(aircraftHud);
+app5.use(Quasar);
+app5.mount("#aircraft-container");
 
 // COMPASS HUD
 
